@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/navigation_emergencia"
+        android:icon="@drawable/ic_warning_black_24dp"
+        android:title="@string/emergencia_main" />
+
+    <item
+        android:id="@+id/navigation_contatos"
+        android:icon="@drawable/ic_contact_phone_black_24dp"
+        android:title="@string/contatos" />
+
+    <item
+        android:id="@+id/navigation_opcoes"
+        android:icon="@drawable/ic_settings_black_24dp"
+        android:title="@string/opções" />
+
+</menu>

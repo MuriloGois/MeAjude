@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Me Ajude</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+
+
+
+    <string name="emergencia_main">EMERGÊNCIA</string>
+    <string name="contatos">Contatos</string>
+    <string name="opções">Opções</string>
+</resources>
