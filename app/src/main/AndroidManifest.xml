@@ -6,8 +6,12 @@
         android:name="android.permission.SEND_SMS">
     </uses-permission>
     <uses-permission android:name="android.permission.CALL_PHONE">
-
     </uses-permission>
+
+    <uses-permission android:name="android.permission.READ_CONTACTS"/>
+    <!-- OR - depends on the requiremnts-->
+    <uses-permission android:name="android.permission.WRITE_CONTACTS"/>
+    
 
     <application
         android:allowBackup="true"
@@ -25,6 +29,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/preferences"/>
+        </provider>
     </application>
 
 </manifest>
