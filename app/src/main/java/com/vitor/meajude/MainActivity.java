@@ -12,11 +12,10 @@ import com.google.gson.reflect.TypeToken;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
-import androidx.fragment.*;
-import androidx.preference.PreferenceFragment;
 
 import android.provider.ContactsContract;
 import android.util.Log;
@@ -24,6 +23,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -62,6 +62,11 @@ public class MainActivity extends AppCompatActivity {
         editor.clear();
         editor.apply();*/
 
+        if(isFirstTime()){
+            criarDialogoPrimeiraVez();
+        }else{
+            Log.e("15","NADA");
+        }
 
         if(getSharedPreferences(SHARED_PREFS,MODE_PRIVATE).contains("contatoPreferencial") &&
                 !getSharedPreferences(SHARED_PREFS,MODE_PRIVATE).contains("contatosAdicionais")){
@@ -69,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
             Log.e("2","ACHOU UM CONTATO PREFERENCIAL");
             carregarContatoPreferencial();
         }else{
-            Log.e("3","NENHUM CONTATO PREFERENCIAL");
+            Log.e("3","NENHUM CONTATO PREFERENCIAL OU CONTATOS JÁ JUNTOS");
         }
 
         if(getSharedPreferences(SHARED_PREFS,MODE_PRIVATE).contains("contatosAdicionais")){
@@ -89,19 +94,48 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         Gson gson = new Gson();
 
+        if( !((ContatosFragment) FRAGMENTO_CONTATOS).listaCheia() ){
+            ((ContatosFragment) FRAGMENTO_CONTATOS).addContatoAdicional(contatoE);
 
+            List<ContatoEmergencia> lista = ((ContatosFragment) FRAGMENTO_CONTATOS).getListaTotalContatos();
 
-        ((ContatosFragment) FRAGMENTO_CONTATOS).addContatoAdicional(contatoE);
+            String json = gson.toJson(lista);
+            editor.putString("contatosAdicionais",json);
+            editor.apply();
+            Log.e("1","ADICIONAL ADDED");
+        }else{
 
-        List<ContatoEmergencia> lista = ((ContatosFragment) FRAGMENTO_CONTATOS).getListaTotalContatos();
-
-        String json = gson.toJson(lista);
-        editor.putString("contatosAdicionais",json);
-        editor.apply();
-        Log.e("1","ADICIONAL ADDED");
+            Log.e("2","LISTA CHEIA ! NÃO É POSSÍVEL ADICIONAR MAIS CONTATOS");
+        }
 
 
     }
+
+    private boolean isFirstTime()
+    {
+        SharedPreferences preferences = getSharedPreferences(SHARED_PREFS,MODE_PRIVATE);
+        boolean ranBefore = preferences.getBoolean("RanBefore", false);
+        if (!ranBefore) {
+            // first time
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putBoolean("RanBefore", true);
+            editor.apply();
+        }
+        return !ranBefore;
+    }
+
+    private void criarDialogoPrimeiraVez(){
+
+        AlertDialog.Builder criador = new AlertDialog.Builder(this);
+
+        criador.setMessage("PRIMEIRA VEZ !");
+        criador.setCancelable(true);
+
+        AlertDialog msg = criador.create();
+
+        msg.show();
+    }
+
 
     public void carregarContatosAdicionais(){
         SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREFS,MODE_PRIVATE);
