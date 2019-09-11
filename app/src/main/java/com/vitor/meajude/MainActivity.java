@@ -1,11 +1,17 @@
 package com.vitor.meajude;
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.location.Location;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 
+import com.google.android.gms.location.LocationListener;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -14,6 +20,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 
@@ -33,6 +41,12 @@ public class MainActivity extends AppCompatActivity {
 
     public static final String SHARED_PREFS = "sharedPrefs";
     public static final String TEXT = "text";
+    public static final int PERMISSAO_MANDAR_SMS = 0;
+    public static final int PERMISSAO_LIGAR = 0;
+    public static final int PERMISSAO_GPS1 = 0;
+    public static final int PERMISSAO_GPS2 = 0;
+    public static final int PERMISSAO_CONTATOS = 0;
+    public static final int TODAS_AS_PERMISSOES = 0;
 
 
     Fragment FRAGMENTO_EMERGENCIA;
@@ -62,11 +76,6 @@ public class MainActivity extends AppCompatActivity {
         editor.clear();
         editor.apply();*/
 
-        if(isFirstTime()){
-            criarDialogoPrimeiraVez();
-        }else{
-            Log.e("15","NADA");
-        }
 
         if(getSharedPreferences(SHARED_PREFS,MODE_PRIVATE).contains("contatoPreferencial") &&
                 !getSharedPreferences(SHARED_PREFS,MODE_PRIVATE).contains("contatosAdicionais")){
@@ -85,8 +94,72 @@ public class MainActivity extends AppCompatActivity {
             Log.e("5","NADA");
         }
 
+        PEDIR_PERMISSOES();
+
 
     }
+
+
+    public void PEDIR_PERMISSOES(){
+        /*AQUI PEDE AS PERMISSÕES*/
+        if(ContextCompat.checkSelfPermission(this,
+                Manifest.permission.SEND_SMS) +
+                ContextCompat.checkSelfPermission(this,Manifest.permission.CALL_PHONE) +
+                ContextCompat.checkSelfPermission(this,Manifest.permission.READ_CONTACTS) +
+                ContextCompat.checkSelfPermission(this,Manifest.permission.ACCESS_FINE_LOCATION) +
+                ContextCompat.checkSelfPermission(this,Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED){
+
+            if(ActivityCompat.shouldShowRequestPermissionRationale(this,Manifest.permission.SEND_SMS)
+                    || ActivityCompat.shouldShowRequestPermissionRationale(this,Manifest.permission.CALL_PHONE)
+                    || ActivityCompat.shouldShowRequestPermissionRationale(this,Manifest.permission.READ_CONTACTS)
+                    || ActivityCompat.shouldShowRequestPermissionRationale(this,Manifest.permission.ACCESS_FINE_LOCATION)
+                    || ActivityCompat.shouldShowRequestPermissionRationale(this,Manifest.permission.ACCESS_COARSE_LOCATION)){
+
+                criarDialogoPrecisaTodasPermissoes();
+            }
+
+            else{
+                ActivityCompat.requestPermissions(this,new String[]{
+                        Manifest.permission.SEND_SMS,
+                        Manifest.permission.CALL_PHONE,
+                        Manifest.permission.READ_CONTACTS,
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION},TODAS_AS_PERMISSOES);
+
+
+            }
+        }
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+
+
+        switch (requestCode) {
+
+
+            case TODAS_AS_PERMISSOES:
+
+                if (grantResults.length > 0) {
+
+                    boolean permissao0 = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+                    boolean permissao1 = grantResults[1] == PackageManager.PERMISSION_GRANTED;
+                    boolean permissao2 = grantResults[2] == PackageManager.PERMISSION_GRANTED;
+                    boolean permissao3 = grantResults[3] == PackageManager.PERMISSION_GRANTED;
+                    boolean permissao4 = grantResults[4] == PackageManager.PERMISSION_GRANTED;
+
+                    if(permissao0 && permissao1 && permissao2 && permissao3 && permissao4){
+                        Log.e("OBRIGADO", "OBRIGADO");
+                    }else{
+                        Log.e("ALERTA", "SEM PERMISSÕES TOTAIS !!!");
+                    }
+                }
+                break;
+        }
+    }
+
 
     public void salvarContato(ContatoEmergencia contatoE){
 
@@ -129,6 +202,19 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog.Builder criador = new AlertDialog.Builder(this);
 
         criador.setMessage("PRIMEIRA VEZ !");
+        criador.setCancelable(true);
+
+        AlertDialog msg = criador.create();
+
+        msg.show();
+
+    }
+
+    private void criarDialogoPrecisaTodasPermissoes(){
+
+        AlertDialog.Builder criador = new AlertDialog.Builder(this);
+
+        criador.setMessage("VOCÊ PRECISA CONCEDER TODAS AS PERMISSÕES PARA O APLICATIVO !");
         criador.setCancelable(true);
 
         AlertDialog msg = criador.create();
@@ -199,10 +285,21 @@ public class MainActivity extends AppCompatActivity {
                         phoneNo = cursor.getString(phoneIndex);
                         name = cursor.getString(nameIndex);
 
+                        String newTel = "";
+                        String codigo55brasil = "+55";
+
                         ContatoEmergencia contato = new ContatoEmergencia();
 
+                        if(phoneNo.contains("+55")){
+                           newTel = phoneNo;
+                           Log.e("1","NUM OK");
+                        }else{
+                            Log.e("1","NÚM LIXO");
+                            newTel = codigo55brasil + phoneNo;
+                        }
+
                         contato.setNome(name);
-                        contato.setTelefone(phoneNo);
+                        contato.setTelefone(newTel);
 
                         if(!getSharedPreferences(SHARED_PREFS,MODE_PRIVATE).contains("contatoPreferencial")){
                             salvarContatoPreferencial(contato);
@@ -221,12 +318,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void teste(View v){
-        System.out.println("APERTOU GOSTOSO !!! ");
-    }
+    public void botaoEmergencia(View v){
 
-    public void vaitomarnocu(View v){
-        System.out.println("TOMAR NO CU ");
+        ((EmergenciaFragment) FRAGMENTO_EMERGENCIA).rotinaEmergencia(
+                ((ContatosFragment)FRAGMENTO_CONTATOS).getListaTotalContatos()
+        );
+
     }
 
     public void getContatos(View v){
