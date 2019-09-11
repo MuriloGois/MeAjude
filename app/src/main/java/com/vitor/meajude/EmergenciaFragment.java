@@ -55,8 +55,10 @@ public class EmergenciaFragment extends Fragment {
         Log.e("20","MANDANDO SMS");
 
         for (int i = 0;i<listaContatos.size();i++){
-            smsManager.sendTextMessage(listaContatos.get(i).getTelefone(), null, "SOCORRO", null, null);
+            String mensagem = listaContatos.get(i).getNome() + " EU ESTOU SOB PERIGO !";
+            smsManager.sendTextMessage(listaContatos.get(i).getTelefone(), null, mensagem, null, null);
         }
+
 
         //smsManager.sendTextMessage(listaContatos.get(0).getTelefone(), null, "SOCORRO", null, null);
 

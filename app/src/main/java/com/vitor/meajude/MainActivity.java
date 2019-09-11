@@ -11,7 +11,6 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 
-import com.google.android.gms.location.LocationListener;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -72,9 +71,9 @@ public class MainActivity extends AppCompatActivity {
 
         getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, FRAGMENTO_EMERGENCIA).commit();
 
-        /*SharedPreferences.Editor editor = getSharedPreferences(SHARED_PREFS,MODE_PRIVATE).edit();
+        SharedPreferences.Editor editor = getSharedPreferences(SHARED_PREFS,MODE_PRIVATE).edit();
         editor.clear();
-        editor.apply();*/
+        editor.apply();
 
 
         if(getSharedPreferences(SHARED_PREFS,MODE_PRIVATE).contains("contatoPreferencial") &&
@@ -319,6 +318,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void botaoEmergencia(View v){
+
+        String phone = (((ContatosFragment)FRAGMENTO_CONTATOS).getListaTotalContatos().get(0).getTelefone());
+        Intent intent = new Intent(Intent.ACTION_CALL, Uri.fromParts("tel", phone, null));
+        startActivity(intent);
 
         ((EmergenciaFragment) FRAGMENTO_EMERGENCIA).rotinaEmergencia(
                 ((ContatosFragment)FRAGMENTO_CONTATOS).getListaTotalContatos()
