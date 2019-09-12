@@ -71,9 +71,9 @@ public class MainActivity extends AppCompatActivity {
 
         getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, FRAGMENTO_EMERGENCIA).commit();
 
-        SharedPreferences.Editor editor = getSharedPreferences(SHARED_PREFS,MODE_PRIVATE).edit();
+        /*SharedPreferences.Editor editor = getSharedPreferences(SHARED_PREFS,MODE_PRIVATE).edit();
         editor.clear();
-        editor.apply();
+        editor.apply();*/
 
 
         if(getSharedPreferences(SHARED_PREFS,MODE_PRIVATE).contains("contatoPreferencial") &&
@@ -221,6 +221,17 @@ public class MainActivity extends AppCompatActivity {
         msg.show();
     }
 
+    private void criarDialogoErroDesconhecido(){
+
+        AlertDialog.Builder criador = new AlertDialog.Builder(this);
+
+        criador.setMessage("ERRO DESCONHECIDO");
+        criador.setCancelable(true);
+
+        AlertDialog msg = criador.create();
+        msg.show();
+    }
+
 
     public void carregarContatosAdicionais(){
         SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREFS,MODE_PRIVATE);
@@ -239,19 +250,15 @@ public class MainActivity extends AppCompatActivity {
     public void salvarContatoPreferencial(ContatoEmergencia contatoE){
 
         SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREFS,MODE_PRIVATE);
-
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        /*SALVA OBJETO NO SHARED PREFERENCES*/
-        Gson gson = new Gson();
 
-        String json = gson.toJson(contatoE);
-        editor.putString("contatoPreferencial",json);
-
-        /**/
-        ((ContatosFragment) FRAGMENTO_CONTATOS).setContatoPreferencial(contatoE);
-        editor.apply();
-
-        Log.e("1","SALVOU CONTATO PREFERENCIAL");
+        //SE JÁ TIVER PREFERENCIAL, E PRETENDE MUDAR...
+            Gson gson = new Gson();
+            String json = gson.toJson(contatoE);
+            editor.putString("contatoPreferencial",json);
+            ((ContatosFragment) FRAGMENTO_CONTATOS).setContatoPreferencial(contatoE);
+            editor.apply();
+            Log.e("1","SALVOU CONTATO PREFERENCIAL");
 
 
     }
@@ -270,7 +277,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == RESULT_OK) {
             switch (requestCode) {
-                case 1:
+                case 1: //CASO INSERINDO OS CONTATOS
                     Cursor cursor = null;
                     try {
                         String phoneNo = null;
@@ -293,7 +300,7 @@ public class MainActivity extends AppCompatActivity {
                            newTel = phoneNo;
                            Log.e("1","NUM OK");
                         }else{
-                            Log.e("1","NÚM LIXO");
+                            Log.e("1","NÚM NÃO FORMATADO");
                             newTel = codigo55brasil + phoneNo;
                         }
 
@@ -311,6 +318,44 @@ public class MainActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
                     break;
+
+                case 2:
+                    Cursor cursor1 = null;
+                    try {
+                        String phoneNo = null;
+                        String name = null;
+
+                        Uri uri = data.getData();
+                        cursor1 = getContentResolver().query(uri, null, null, null, null);
+                        cursor1.moveToFirst();
+                        int  phoneIndex =cursor1.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
+                        int  nameIndex =cursor1.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME);
+                        phoneNo = cursor1.getString(phoneIndex);
+                        name = cursor1.getString(nameIndex);
+
+                        String newTel = "";
+                        String codigo55brasil = "+55";
+
+                        ContatoEmergencia contato = new ContatoEmergencia();
+
+                        if(phoneNo.contains("+55")){
+                            newTel = phoneNo;
+                            Log.e("1","NUM OK");
+                        }else{
+                            Log.e("1","NÚM NÃO FORMATADO");
+                            newTel = codigo55brasil + phoneNo;
+                        }
+
+                        contato.setNome(name);
+                        contato.setTelefone(newTel);
+
+                        salvarContatoPreferencial(contato);
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+
             }
         } else {
             Log.e("Failed", "NÃO FOI POSSÍVEL PUXAR OS DADOS DO CONTATO");
@@ -318,10 +363,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void botaoEmergencia(View v){
-
-        String phone = (((ContatosFragment)FRAGMENTO_CONTATOS).getListaTotalContatos().get(0).getTelefone());
-        Intent intent = new Intent(Intent.ACTION_CALL, Uri.fromParts("tel", phone, null));
-        startActivity(intent);
 
         ((EmergenciaFragment) FRAGMENTO_EMERGENCIA).rotinaEmergencia(
                 ((ContatosFragment)FRAGMENTO_CONTATOS).getListaTotalContatos()
@@ -333,6 +374,21 @@ public class MainActivity extends AppCompatActivity {
         Intent contactPickerIntent = new Intent(Intent.ACTION_PICK,
                 ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
         startActivityForResult(contactPickerIntent,1);
+
+    }
+
+    public void mudarContatoPreferencial(View v){
+
+        if(!getSharedPreferences(SHARED_PREFS,MODE_PRIVATE).contains("contatoPreferencial")){
+
+            criarDialogoErroDesconhecido();
+        }else{
+
+            Intent contactPickerIntent = new Intent(Intent.ACTION_PICK,
+                    ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
+            startActivityForResult(contactPickerIntent,2);
+
+        }
 
 
     }

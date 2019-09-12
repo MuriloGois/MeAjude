@@ -144,8 +144,16 @@ public class ContatosFragment extends Fragment implements AdapterView.OnItemClic
     public void setContatoPreferencial(ContatoEmergencia contatoE){
         CONTATO_PREFERENCIAL = contatoE;
 
-        listaTotalContatos.add(CONTATO_PREFERENCIAL);
+        if(listaTotalContatos.isEmpty()){
+            listaTotalContatos.add(contatoE);
+        }else{
+            listaTotalContatos.remove(0);
+            listaTotalContatos.add(0,contatoE);
+        }
+
     }
+
+
 
     public List<ContatoEmergencia> getListaTotalContatos(){
         return listaTotalContatos;
@@ -163,6 +171,8 @@ public class ContatosFragment extends Fragment implements AdapterView.OnItemClic
 
     public void onResume() {
         super.onResume();
+
+        salvarEstadoDosContatos();
 
         System.out.println("me abriu");
 
